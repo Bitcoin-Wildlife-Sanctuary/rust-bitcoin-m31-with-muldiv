@@ -7,7 +7,7 @@ edition = "2021"
 bitvm = { git = "https://github.com/BitVM/BitVM" }
 bitcoin-script = { git = "https://github.com/BitVM/rust-bitcoin-script" }
 bitcoin = { git = "https://github.com/rust-bitcoin/rust-bitcoin", branch = "bitvm" }
-bitcoin-scriptexec = { git = "https://github.com/BitVM/rust-bitcoin-scriptexec/" }
+bitcoin-scriptexec = { git = "https://github.com/Bitcoin-Wildlife-Sanctuary/rust-bitcoin-scriptexec-with-muldiv" }
 
 rand_chacha = "0.3.1"
 rand = "0.8.5"
@@ -66,3 +66,6 @@ branch = "bitvm"
 [patch.crates-io.bitcoin-units]
 git = "https://github.com/rust-bitcoin/rust-bitcoin"
 branch = "bitvm"
+
+[patch.'https://github.com/BitVM/rust-bitcoin-scriptexec/'.bitcoin-scriptexec]
+git = "https://github.com/Bitcoin-Wildlife-Sanctuary/rust-bitcoin-scriptexec-with-muldiv"

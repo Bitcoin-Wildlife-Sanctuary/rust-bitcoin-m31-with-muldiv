@@ -1,33 +1,33 @@
-use crate::{u31_add, u31_mul, u31_sub, U31Config};
+use crate::{m31_add, m31_mul, m31_sub};
 use bitvm::treepp::*;
 
 // Input: A1 B1 A2 B2
 // Output:
 //      A1B2 + A2B1
 //      B1B2 - A1A2
-pub fn karatsuba_complex_small<M: U31Config>() -> Script {
+pub fn karatsuba_small() -> Script {
     script! {
         OP_OVER 4 OP_PICK
-        { u31_mul::<M>() }
+        m31_mul
         OP_TOALTSTACK
         OP_DUP
         3 OP_PICK
-        { u31_mul::<M>() }
+        m31_mul
         OP_TOALTSTACK
-        { u31_add::<M>() }
+        m31_add
         OP_TOALTSTACK
-        { u31_add::<M>() }
+        m31_add
         OP_FROMALTSTACK
-        { u31_mul::<M>() }
+        m31_mul
         OP_FROMALTSTACK
         OP_FROMALTSTACK
         OP_2DUP
-        { u31_add::<M>() }
+        m31_add
         3 OP_ROLL
         OP_SWAP
-        { u31_sub::<M>() }
+        m31_sub
         OP_TOALTSTACK
-        { u31_sub::<M>() }
+        m31_sub
         OP_FROMALTSTACK
         OP_SWAP
     }
@@ -40,34 +40,34 @@ pub fn karatsuba_complex_small<M: U31Config>() -> Script {
 //      (A1, B1) * (A2, B2) - 2 elements
 //      (A1, B1) * (C2, D2) + (A2, B2) * (C1, D1) - 2 elements
 //      (C1, D1) * (C2, D2) - 2 elements
-pub fn karatsuba_complex_big<M: U31Config>() -> Script {
+pub fn karatsuba_big() -> Script {
     script! {
         7 OP_PICK
         7 OP_PICK
         5 OP_PICK
         5 OP_PICK
-        { karatsuba_complex_small::<M>() }
+        karatsuba_small
         OP_TOALTSTACK
         OP_TOALTSTACK
         OP_2DUP
         7 OP_PICK
         7 OP_PICK
-        { karatsuba_complex_small::<M>() }
+        karatsuba_small
         OP_TOALTSTACK
         OP_TOALTSTACK
         OP_ROT
-        { u31_add::<M>() }
+        m31_add
         OP_TOALTSTACK
-        { u31_add::<M>() }
+        m31_add
         OP_TOALTSTACK
         OP_ROT
-        { u31_add::<M>() }
+        m31_add
         OP_TOALTSTACK
-        { u31_add::<M>() }
+        m31_add
         OP_FROMALTSTACK
         OP_FROMALTSTACK
         OP_FROMALTSTACK
-        { karatsuba_complex_small::<M>() }
+        karatsuba_small
         OP_FROMALTSTACK
         OP_FROMALTSTACK
         OP_FROMALTSTACK
@@ -75,13 +75,13 @@ pub fn karatsuba_complex_big<M: U31Config>() -> Script {
         5 OP_ROLL
         2 OP_PICK
         5 OP_PICK
-        { u31_add::<M>() }
-        { u31_sub::<M>() }
+        m31_add
+        m31_sub
         5 OP_ROLL
         2 OP_PICK
         5 OP_PICK
-        { u31_add::<M>() }
-        { u31_sub::<M>() }
+        m31_add
+        m31_sub
         5 OP_ROLL
         5 OP_ROLL
     }
@@ -89,8 +89,7 @@ pub fn karatsuba_complex_big<M: U31Config>() -> Script {
 
 #[cfg(test)]
 mod test {
-    use crate::M31;
-    use crate::{karatsuba_complex_big, karatsuba_complex_small};
+    use super::{karatsuba_big, karatsuba_small};
     use bitvm::treepp::*;
     use core::ops::{Add, Mul, Sub};
     use p3_field::extension::Complex;
@@ -100,7 +99,7 @@ mod test {
     use rand_chacha::ChaCha20Rng;
 
     #[test]
-    fn test_small_karatsuba_complex() {
+    fn test_small_karatsuba() {
         let mut prng = ChaCha20Rng::seed_from_u64(0u64);
 
         let a1: P3M31 = prng.gen();
@@ -113,7 +112,7 @@ mod test {
 
         let script = script! {
             { a1.as_canonical_u32() } { b1.as_canonical_u32() } { a2.as_canonical_u32() } { b2.as_canonical_u32() }
-            { karatsuba_complex_small::<M31>() }
+            karatsuba_small
             { second.as_canonical_u32() }
             OP_EQUALVERIFY
             { first.as_canonical_u32() }
@@ -124,7 +123,7 @@ mod test {
     }
 
     #[test]
-    fn test_big_karatsuba_complex() {
+    fn test_big_karatsuba() {
         let mut prng = ChaCha20Rng::seed_from_u64(0u64);
 
         let a1: P3M31 = prng.gen();
@@ -149,7 +148,7 @@ mod test {
         let script = script! {
             { a1.as_canonical_u32() } { b1.as_canonical_u32() } { c1.as_canonical_u32() } { d1.as_canonical_u32() }
             { a2.as_canonical_u32() } { b2.as_canonical_u32() } { c2.as_canonical_u32() } { d2.as_canonical_u32() }
-            { karatsuba_complex_big::<M31>() }
+            karatsuba_big
             { group3_second.as_canonical_u32() }
             OP_EQUALVERIFY
             { group3_first.as_canonical_u32() }
@@ -168,7 +167,7 @@ mod test {
     }
 
     #[test]
-    fn test_small_karatsuba_complex_consistency() {
+    fn test_small_karatsuba_consistency() {
         let mut rng = ChaCha20Rng::seed_from_u64(0u64);
 
         let a: Complex<p3_mersenne_31::Mersenne31> = rng.gen();
@@ -178,7 +177,7 @@ mod test {
         let script = script! {
             { a.imag().as_canonical_u32() } { a.real().as_canonical_u32() }
             { b.imag().as_canonical_u32() } { b.real().as_canonical_u32() }
-            { karatsuba_complex_small::<M31>() }
+            karatsuba_small
             { c.real().as_canonical_u32() }
             OP_EQUALVERIFY
             { c.imag().as_canonical_u32() }
