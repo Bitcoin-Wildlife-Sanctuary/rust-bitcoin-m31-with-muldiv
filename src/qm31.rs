@@ -1,5 +1,5 @@
 use crate::m31::{m31_add, m31_double, m31_sub};
-use bitvm::treepp::*;
+use crate::treepp::*;
 
 pub use crate::karatsuba_complex::*;
 use crate::m31_mul;
@@ -146,11 +146,11 @@ pub fn qm31_roll(offset: usize) -> Script {
 
 #[cfg(test)]
 mod test {
+    use crate::treepp::*;
     use crate::{
         qm31_add, qm31_copy, qm31_double, qm31_equalverify, qm31_mul, qm31_mul_m31, qm31_roll,
         qm31_sub,
     };
-    use bitvm::treepp::*;
     use core::ops::{Add, Mul, Neg};
     use p3_field::extension::Complex;
     use p3_field::{AbstractExtensionField, AbstractField, PrimeField32};
